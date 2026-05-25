@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OncoAlícia · Agent de Receptes</title>
+  <style>
+    :root {
+      --primary: #e8622a;
+      --primary-dark: #c44d1a;
+      --primary-light: #fdf0ea;
+      --secondary: #4caf76;
+      --secondary-light: #edf7f1;
+      --bg: #f8f6f3;
+      --white: #ffffff;
+      --text: #2d2d2d;
+      --text-muted: #7a7a7a;
+      --border: #e2ddd8;
+      --shadow: 0 2px 16px rgba(0,0,0,0.08);
+      --radius: 18px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text);
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 46px;
+      height: 46px;
+      background: linear-gradient(135deg, var(--primary), #f4a261);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .header-badge {
+      margin-left: auto;
+      background: var(--secondary-light);
+      color: var(--secondary);
+      border: 1px solid #b8e8cc;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--secondary);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── Layout ── */
+    .main-layout {
+      display: flex;
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sidebar-card {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-card h3 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .topic-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    .topic-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary-dark);
+    }
+
+    .topic-btn .icon { margin-right: 7px; }
+
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .tag {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border: 1px solid #f0c0a8;
+      border-radius: 14px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tag:hover {
+      background: var(--primary);
+      color: var(--white);
+      border-color: var(--primary);
+    }
+
+    .tag.green {
+      background: var(--secondary-light);
+      color: #2e7d52;
+      border-color: #b8e8cc;
+    }
+
+    .tag.green:hover {
+      background: var(--secondary);
+      color: var(--white);
+      border-color: var(--secondary);
+    }
+
+    /* ── Chat Area ── */
+    .chat-container {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 440px;
+      max-height: 62vh;
+    }
+
+    /* ── Messages ── */
+    .message {
+      display: flex;
+      gap: 10px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .avatar.bot {
+      background: linear-gradient(135deg, var(--primary), #f4a261);
+    }
+
+    .avatar.user {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .bubble {
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .message.bot .bubble {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-top-left-radius: 4px;
+    }
+
+    .message.user .bubble {
+      background: var(--primary);
+      color: var(--white);
+      border-top-right-radius: 4px;
+    }
+
+    .bubble strong { font-weight: 700; }
+
+    .bubble ul {
+      margin: 8px 0 4px 16px;
+      padding: 0;
+    }
+
+    .bubble li { margin-bottom: 4px; }
+
+    .bubble .recipe-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+
+    .bubble .recipe-card h4 {
+      color: var(--primary);
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .bubble .section-title {
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-top: 10px;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .bubble .chip {
+      display: inline-block;
+      background: var(--secondary-light);
+      color: #2e7d52;
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 2px 3px 2px 0;
+    }
+
+    .quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .qr-btn {
+      background: var(--white);
+      border: 1.5px solid var(--primary);
+      color: var(--primary);
+      border-radius: 20px;
+      padding: 5px 13px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .qr-btn:hover {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    /* ── Typing Indicator ── */
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .typing-indicator.show { display: flex; }
+
+    .typing-dots {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      border-top-left-radius: 4px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* ── Input Area ── */
+    .chat-input-area {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--white);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    #userInput {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 24px;
+      padding: 11px 18px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      min-height: 44px;
+      max-height: 120px;
+      overflow-y: auto;
+      line-height: 1.5;
+      transition: border-color 0.15s;
+      color: var(--text);
+    }
+
+    #userInput:focus { border-color: var(--primary); }
+    #userInput::placeholder { color: var(--text-muted); }
+
+    #sendBtn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+      color: white;
+      font-size: 18px;
+    }
+
+    #sendBtn:hover { background: var(--primary-dark); transform: scale(1.05); }
+    #sendBtn:active { transform: scale(0.95); }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* ── Recipe Grid (in sidebar) ── */
+    .recipe-count {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .recipe-count span {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .main-layout { flex-direction: column; padding: 12px; }
+      .sidebar { width: 100%; }
+      .chat-messages { max-height: 50vh; }
+      .bubble { max-width: 90%; }
+    }
+
+    /* ── Source link ── */
+    .source-link {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .source-link a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .source-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">🍊</div>
+    <div class="logo-text">
+      <h1>OncoAlícia</h1>
+      <p>Agent de receptes per al tractament del càncer</p>
+    </div>
+  </div>
+  <div class="header-badge">
+    <div class="status-dot"></div>
+    Agent actiu
+  </div>
+</header>
+
+<!-- ══ MAIN LAYOUT ══ -->
+<div class="main-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="sidebar-card">
+      <div class="recipe-count">24+<span>receptes disponibles</span></div>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>🔍 Explora per tema</h3>
+      <button class="topic-btn" onclick="sendQuick('Quines receptes hi ha a OncoAlícia?')"><span class="icon">📋</span>Totes les receptes</button>
+      <button class="topic-btn" onclick="sendQuick('Tinc nàusees, quines receptes em van bé?')"><span class="icon">🤢</span>Per a nàusees</button>
+      <button class="topic-btn" onclick="sendQuick('Tinc mucositis, quines receptes puc fer?')"><span class="icon">🌿</span>Per a mucositis</button>
+      <button class="topic-btn" onclick="sendQuick('Necessito receptes de textura tova o triturada')"><span class="icon">🥣</span>Textura modificada</button>
+      <button class="topic-btn" onclick="sendQuick('Tinc poca gana, quines receptes em recomanes?')"><span class="icon">😔</span>Poca gana</button>
+      <button class="topic-btn" onclick="sendQuick('Quines receptes fresques puc menjar?')"><span class="icon">❄️</span>Receptes fresques</button>
+      <button class="topic-btn" onclick="sendQuick('Quines receptes aporten molta proteïna?')"><span class="icon">💪</span>Altes en proteïna</button>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>🍽 Receptes populars</h3>
+      <div class="tag-cloud">
+        <span class="tag" onclick="sendQuick('Com es prepara el tabulé?')">Tabulé</span>
+        <span class="tag" onclick="sendQuick('Com es fa la crema de patata?')">Crema patata</span>
+        <span class="tag" onclick="sendQuick('Com es fa la sopa de miso?')">Sopa miso</span>
+        <span class="tag" onclick="sendQuick('Com es fa el granissat de meló?')">Granissat meló</span>
+        <span class="tag" onclick="sendQuick('Com es fa la lasanya vegetal?')">Lasanya vegetal</span>
+        <span class="tag" onclick="sendQuick('Com es fa la papillota de peix?')">Papillota peix</span>
+        <span class="tag" onclick="sendQuick('Com es fa la mousse de codonyat?')">Mousse codonyat</span>
+        <span class="tag" onclick="sendQuick('Com es fan les crispetes condimentades?')">Crispetes</span>
+        <span class="tag" onclick="sendQuick('Com es fa el polo d\'albercoc?')">Polo albercoc</span>
+        <span class="tag green" onclick="sendQuick('Quines receptes fresques o fredes hi ha?')">Fredes</span>
+        <span class="tag green" onclick="sendQuick('Quines receptes de sopa hi ha?')">Sopes</span>
+        <span class="tag green" onclick="sendQuick('Quines receptes de crema hi ha?')">Cremes</span>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>ℹ️ Sobre OncoAlícia</h3>
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.6">
+        Projecte de la <strong>Fundació Catalunya La Pedrera</strong> i la <strong>Fundació Alícia</strong>. Receptes pensades per ajudar les persones en tractament oncològic a menjar de forma nutritiva i agradable.
+      </p>
+      <p style="font-size:12px;margin-top:8px">
+        🌐 <a href="https://oncoalicia.com/receptes/" target="_blank" style="color:var(--primary)">oncoalicia.com/receptes/</a>
+      </p>
+    </div>
+
+  </aside>
+
+  <!-- Chat -->
+  <div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+
+      <!-- Welcome message -->
+      <div class="message bot">
+        <div class="avatar bot">🍊</div>
+        <div class="bubble">
+          <strong>Hola! Soc l'agent de receptes d'OncoAlícia 👋</strong><br><br>
+          Estic aquí per ajudar-te a trobar receptes adaptades al tractament del càncer. Pots preguntar-me sobre ingredients, preparació, quines receptes van bé per a cada efecte secundari, i molt més.<br><br>
+          Pots escriure en <strong>català o castellà</strong>. Aquí tens algunes idees de per on començar:
+          <div class="quick-replies">
+            <button class="qr-btn" onclick="sendQuick('Quines receptes hi ha a OncoAlícia?')">📋 Veure totes les receptes</button>
+            <button class="qr-btn" onclick="sendQuick('Tinc nàusees, quines receptes em van bé?')">🤢 Receptes per nàusees</button>
+            <button class="qr-btn" onclick="sendQuick('Necessito receptes de textura tova')">🥣 Textura modificada</button>
+            <button class="qr-btn" onclick="sendQuick('Com funciona OncoAlícia?')">ℹ️ Sobre el projecte</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="avatar bot">🍊</div>
+      <div class="typing-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <div class="input-row">
+        <textarea id="userInput" placeholder="Escriu la teva pregunta en català o castellà..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button id="sendBtn" onclick="sendMessage()" title="Enviar">➤</button>
+      </div>
+      <div class="input-hint">Prem Intro per enviar · Shift+Intro per nova línia</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ KNOWLEDGE BASE & LOGIC ══ -->
+<script>
+// ─────────────────────────────────────────────
+// KNOWLEDGE BASE – OncoAlícia receptes
+// Font: oncoalicia.com/receptes/
+// ─────────────────────────────────────────────
+const KB = {
+
+  about: `
+OncoAlícia és un projecte social i científic impulsat per la Fundació Catalunya La Pedrera i
+desenvolupat per la Fundació Alícia, amb la col·laboració d'entitats de referència en oncologia.
+L'objectiu és ajudar les persones en tractament del càncer a menjar de la forma més nutritiva,
+segura i agradable possible.
+
+Les receptes no són fórmules tancades, sinó que volen ser idees per a que cada persona pugui
+preparar versions personalitzades adaptades a les seves preferències, als productes de temporada,
+als aliments disponibles a casa, als símptomes que hagin aparegut, etc.
+
+La majoria de receptes es descriuen per a 1 persona, de manera que si algú vol cuinar
+només per a si mateix, seguirà els ingredients i la preparació tal com apareixen.
+
+Web: https://oncoalicia.com/receptes/
+  `.trim(),
+
+  recipes: [
+    {
+      id: "tabule",
+      name: "Tabulé",
+      nameCat: "Tabulé",
+      nameEs: "Tabulé",
+      url: "https://oncoalicia.com/receptes/tabule/",
+      category: ["amanides", "cereals", "fred"],
+      sideEffects: ["nausees", "poca_gana", "boca_seca"],
+      texture: "normal",
+      description: "Amanida refrescant de bulgur amb verdures fresques. Ideal per quan hi ha poca gana, ja que es pot menjar fred i és fàcil de preparar.",
+      ingredients: [
+        "100 g de bulgur (o cuscús)",
+        "2 tomàquets madurs, tallats a daus petits",
+        "1/2 ceba tendra o ceba morada, picada fina",
+        "1 grapat generós de julivert fresc picat",
+        "Suc d'1 llimona",
+        "2–3 cullerades d'oli d'oliva verge extra",
+        "Sal i pebre al gust",
+        "Opcional: menta fresca picada"
+      ],
+      preparation: [
+        "Hidrata el bulgur amb aigua bullent durant 15–20 minuts. Escorre bé i deixa refredar.",
+        "Pica el tomàquet, la ceba i el julivert molt fins.",
+        "Barreja el bulgur fred amb les verdures picades.",
+        "Amaneix amb suc de llimona, oli d'oliva, sal i pebre.",
+        "Deixa reposar a la nevera almenys 30 minuts perquè s'integrin els sabors.",
+        "Serveix fred o a temperatura ambient."
+      ],
+      tips: "Si tens mucositis, redueix el suc de llimona o substitueix-lo per una mica de brou suau. Pots enriquir amb oli d'oliva extra per augmentar les calories.",
+      nutrition: "Aportació de fibra, vitamines del tomàquet i proteïna vegetal del bulgur."
+    },
+    {
+      id: "crema_patata",
+      name: "Crema de patata",
+      nameCat: "Crema de patata",
+      nameEs: "Crema de patata",
+      url: "https://oncoalicia.com/receptes/crema-de-patata/",
+      category: ["cremes", "sopes", "calent"],
+      sideEffects: ["mucositis", "disfagia", "nausees", "poca_gana"],
+      texture: "triturada",
+      description: "Crema suau de patata, lleugera i fàcil de preparar. Ideal per a mucositis i dificultats per mastegar o empassar.",
+      ingredients: [
+        "200 ml de llet desnatada (o llet vegetal)",
+        "4–5 cullerades soperes de flocs de patata (puré instantani)",
+        "1 cullerada d'oli d'oliva verge extra",
+        "Llet en pols desnatada (per enriquir)",
+        "Sal al gust",
+        "Opcional: una mica de mantequilla per suavitzar"
+      ],
+      preparation: [
+        "Escalfa la llet fins que estigui calenta però sense bullir.",
+        "Afegeix els flocs de patata poc a poc remenant sense parar.",
+        "Afegeix l'oli d'oliva i sal al gust.",
+        "Per enriquir el contingut proteic, dissol una mica de llet en pols a la barreja.",
+        "Serveix calent."
+      ],
+      tips: "Pots enriquir la crema afegint formatge ratllat, nata o mantequilla per augmentar les calories. Per a textura modificada (disfàgia), assegura't que no quedin grumolls.",
+      nutrition: "Aportació d'hidrats de carboni, calci (llet) i energia fàcil d'assimilar."
+    },
+    {
+      id: "crispetes",
+      name: "Crispetes condimentades",
+      nameCat: "Crispetes condimentades",
+      nameEs: "Palomitas condimentadas",
+      url: "https://oncoalicia.com/receptes/palomitas-condimentadas/",
+      category: ["aperitius", "snacks"],
+      sideEffects: ["poca_gana", "avorrit_menjar"],
+      texture: "normal",
+      description: "Crispetes de blat de moro condimentades amb espècies aromàtiques. Un snack saborós per estimular la gana.",
+      ingredients: [
+        "50 g de grans de blat de moro per crispetes",
+        "1 cullerada d'oli d'oliva verge extra",
+        "Una mica de sal",
+        "Condiment a triar (un o combinats):",
+        "  · Gingebre en pols + ratlladura de llimona",
+        "  · Orenga seca",
+        "  · Canyella en pols",
+        "  · Cúrcuma + pebre negre"
+      ],
+      preparation: [
+        "Posa l'oli en un pot amb tapa a foc mig-alt.",
+        "Afegeix els grans de blat de moro i tapa el pot.",
+        "Remou de tant en tant fins que totes les crispetes hagin eclosionat.",
+        "Treu del foc, posa en un bol i condimenta amb els espècies triades.",
+        "Serveix a temperatura ambient."
+      ],
+      tips: "El gingebre pot ajudar amb les nàusees. Evita les crispetes si tens mucositis o ferides a la boca. La cúrcuma té propietats antiinflamatòries.",
+      nutrition: "Font d'hidrats de carboni, fibra i antioxidants de les espècies."
+    },
+    {
+      id: "granissat_melo",
+      name: "Granissat de meló",
+      nameCat: "Granissat de meló",
+      nameEs: "Granizado de melón",
+      url: "https://oncoalicia.com/receptes/granizado-de-melon/",
+      category: ["postres", "begudes", "fred", "refrescants"],
+      sideEffects: ["nausees", "mucositis", "boca_seca", "poca_gana"],
+      texture: "líquida_semilíquida",
+      description: "Granissat refrescant de meló, ideal per hidratar-se i calmar la sequedat de boca. Molt fàcil de preparar.",
+      ingredients: [
+        "300 g de polpa de meló (meló cantalup o mel)",
+        "Suc d'1/2 llimona (opcional, reduir si hi ha mucositis)",
+        "1 cullerada de sucre o mel (opcional)",
+        "100 ml d'aigua"
+      ],
+      preparation: [
+        "Talla el meló en trossos i treu les llavors.",
+        "Tritura la polpa del meló amb el sucre i l'aigua fins obtenir un líquid homogeni.",
+        "Afegeix el suc de llimona si es desitja.",
+        "Posa la barreja en un recipient pla i congela durant 2–3 hores.",
+        "Cada 30 minuts, rasca amb una forquilla per obtenir la textura de granissat.",
+        "Serveix directament del congelador."
+      ],
+      tips: "Si tens mucositis, omete el suc de llimona i afegeix una mica de mel per suavitzar. El fred pot ajudar a calmar les molèsties bucals. També pots fer-ho amb altre fruita de temporada.",
+      nutrition: "Hidratació, vitamina C i minerals. Molt baix en calories però refrescant."
+    },
+    {
+      id: "papillota_peix",
+      name: "Papillota de peix blanc amb salsa de xampinyons",
+      nameCat: "Papillota de peix blanc amb salsa de xampinyons",
+      nameEs: "Papillote de pescado blanco con salsa de champiñones",
+      url: "https://oncoalicia.com/receptes/papillote-de-pescado-blanco-con-salsa-de-champinones/",
+      category: ["peix", "principals", "calent"],
+      sideEffects: ["poca_gana", "nausees"],
+      texture: "tova",
+      description: "Filet de lluç cuit en papillota amb salsa de xampinyons. Cocció suau que preserva els nutrients i fa el peix molt tendre.",
+      ingredients: [
+        "1 filet de lluç (150–200 g)",
+        "Suc de llimona",
+        "Oli d'oliva verge extra",
+        "Sal al gust",
+        "Per la salsa de xampinyons:",
+        "  · 100 g de xampinyons frescos laminats",
+        "  · 1/2 ceba petita picada",
+        "  · 1 gra d'all picat",
+        "  · 1 cullerada de mantequilla",
+        "  · Sal i pebre"
+      ],
+      preparation: [
+        "Prepara la salsa: en una paella, fon la mantequilla i sofregeix la ceba i l'all fins que estiguin tous.",
+        "Afegeix els xampinyons i cuina fins que perdin l'aigua. Salpebra i reserva.",
+        "Posa el filet de lluç sobre paper d'alumini o paper de forn.",
+        "Ruixa amb oli d'oliva i unes gotes de llimona.",
+        "Tanca bé el papillota i cuina al forn a 180°C durant 15–20 minuts.",
+        "Serveix el peix amb la salsa de xampinyons per sobre."
+      ],
+      tips: "La cocció en papillota preserva la tendresa i els nutrients del peix. Pots substituir el lluç per qualsevol peix blanc. Per a qui té dificultats per mastegar, el peix quedarà prou tou.",
+      nutrition: "Excel·lent font de proteïnes de qualitat, baixa en greixos saturats i rica en minerals."
+    },
+    {
+      id: "conill_pinya",
+      name: "Conill amb pinya en almívar",
+      nameCat: "Conill amb pinya en almívar",
+      nameEs: "Conejo con piña en almíbar",
+      url: "https://oncoalicia.com/receptes/conejo-con-pina-en-almibar/",
+      category: ["carn", "principals", "calent"],
+      sideEffects: ["poca_gana"],
+      texture: "tova",
+      description: "Conill estofat amb pinya en almívar. La dolçor de la pinya fa el plat molt apetitós i la carn queda molt tendra.",
+      ingredients: [
+        "2 trossos de conill",
+        "1 llauna petita de pinya en almívar (o pinya natural)",
+        "100 ml de vi blanc sec",
+        "100 ml de brou de pollastre",
+        "1 ceba petita picada",
+        "1 gra d'all",
+        "Oli d'oliva verge extra",
+        "Sal, pebre i farigola"
+      ],
+      preparation: [
+        "Salpebra el conill i dora-ho en una cassola amb oli d'oliva.",
+        "Retira el conill i sofregeix la ceba i l'all fins que estiguin tous.",
+        "Torna a posar el conill a la cassola.",
+        "Afegeix el vi blanc, el brou i la pinya amb el seu almívar.",
+        "Cuina a foc lent durant 40–50 minuts fins que la carn sigui molt tendra.",
+        "Rectifica de sal i serveix calent."
+      ],
+      tips: "La pinya conté enzims que ajuden a ablanir la carn. Si la persona té problemes d'acidesa, redueix la quantitat de pinya i usa brou en lloc d'almívar.",
+      nutrition: "Proteïna magra de conill, vitamina C de la pinya, baixa en greix."
+    },
+    {
+      id: "puding_verdura",
+      name: "Púding de verdura escalivada",
+      nameCat: "Púding de verdura escalivada",
+      nameEs: "Pudín de verdura asada",
+      url: "https://oncoalicia.com/receptes/pudin-de-verdura-asada/",
+      category: ["verdures", "textura_modificada"],
+      sideEffects: ["mucositis", "disfagia", "masticacio_dificil"],
+      texture: "triturada",
+      description: "Púding suau de verdures escalivades. Textura homogènia ideal per a qui té dificultats per mastegar o empassar.",
+      ingredients: [
+        "1 albergínia",
+        "1 pebrot vermell",
+        "1 ceba",
+        "2 ous",
+        "100 ml de nata líquida (o llet)",
+        "Oli d'oliva verge extra",
+        "Sal i pebre"
+      ],
+      preparation: [
+        "Escalivar les verdures al forn a 200°C durant 40–45 minuts fins que estiguin toves.",
+        "Pelar les verdures i triturar-les fins a obtenir un puré homogeni.",
+        "Barrejar el puré de verdures amb els ous batuts i la nata.",
+        "Salpebrar i posar en un motlle untat amb oli.",
+        "Coure al bany maria al forn a 180°C durant 25–30 minuts.",
+        "Deixar refredar i servir fred o a temperatura ambient."
+      ],
+      tips: "Pots servir el púding amb una salsa de tomàquet suau per afegir sabor. Assegura't que la textura sigui completament homogènia si hi ha disfàgia severa.",
+      nutrition: "Verdures riques en antioxidants, ous per proteïna de qualitat."
+    },
+    {
+      id: "mousse_codonyat",
+      name: "Mousse de codonyat",
+      nameCat: "Mousse de codonyat",
+      nameEs: "Mousse de membrillo",
+      url: "https://oncoalicia.com/receptes/mousse-de-membrillo/",
+      category: ["postres", "textura_modificada"],
+      sideEffects: ["poca_gana", "disfagia", "mucositis"],
+      texture: "mousse",
+      description: "Mousse suau de codonyat. Una postres dolça de textura cremosa, fàcil de menjar i d'empassar.",
+      ingredients: [
+        "150 g de codonyat (gelatina de codony)",
+        "150 g de formatge crema (tipus Philadelphia)",
+        "100 ml de nata per muntar",
+        "Opcional: una mica de sucre si cal més dolçor"
+      ],
+      preparation: [
+        "Tritura el codonyat amb el formatge crema fins obtenir una pasta homogènia.",
+        "Munta la nata fins a punt de neu.",
+        "Incorpora la nata muntada a la barreja de codonyat amb moviments suaus.",
+        "Distribueix en gotets individuals.",
+        "Refrigera almenys 1 hora abans de servir."
+      ],
+      tips: "Si hi ha mucositis, el codonyat és relativament suau però vigila el sucre. Pots substituir el codonyat per poma cuita o pera cuita per una versió menys dolça.",
+      nutrition: "Fonts de calci (formatge), energia (nata) i antioxidants (codony)."
+    },
+    {
+      id: "polo_albercoc",
+      name: "Polo d'albercoc i camamilla",
+      nameCat: "Polo d'albercoc i camamilla",
+      nameEs: "Polo de albaricoque y manzanilla",
+      url: "https://oncoalicia.com/receptes/polo-dalbercoc-i-camamilla/",
+      category: ["postres", "fred", "refrescants"],
+      sideEffects: ["nausees", "mucositis", "boca_seca", "poca_gana"],
+      texture: "geladets",
+      description: "Polo gelat d'albercoc amb infusió de camamilla. Refrescant, suau i ideal per calmar les nàusees i la sequedat de boca.",
+      ingredients: [
+        "4–5 albercocs madurs (o 150 g en conserva)",
+        "200 ml d'infusió de camamilla (refredada)",
+        "1 cullerada de mel o sucre (opcional)",
+        "Unes gotes de llimona (opcional)"
+      ],
+      preparation: [
+        "Prepara una infusió de camamilla i deixa refredar.",
+        "Tritura els albercocs amb la mel fins a obtenir un puré.",
+        "Barreja el puré d'albercoc amb la infusió de camamilla.",
+        "Omple els motlles de polo i fica un pal de fusta.",
+        "Congela durant 4–6 hores com a mínim.",
+        "Treu del motlle passant-lo per aigua calenta un moment."
+      ],
+      tips: "La camamilla és una herba calmant que pot ajudar amb les nàusees. El fred dels geladets alleugereix les molèsties bucals de la mucositis. Pots fer-ho amb altre fruita suau.",
+      nutrition: "Vitamines A i C dels albercocs, propietats calmants de la camamilla."
+    },
+    {
+      id: "lasanya_vegetal",
+      name: "Lasanya vegetal",
+      nameCat: "Lasanya vegetal",
+      nameEs: "Lasaña vegetal",
+      url: "https://oncoalicia.com/es/recetas/lasana-vegetal/",
+      category: ["pasta", "principals", "vegetaria", "calent"],
+      sideEffects: ["poca_gana", "necessitat_proteina"],
+      texture: "normal",
+      description: "Lasanya de verdures i llenties. Plat complet i nutritiu que combina proteïna vegetal de les llenties amb verdures.",
+      ingredients: [
+        "200 g de llenties cuites",
+        "Plaques de lasanya",
+        "1 albergínia",
+        "1 carbassó",
+        "1 ceba",
+        "Salsa de tomàquet",
+        "Beixamel",
+        "Oli d'oliva verge extra",
+        "Sal, pebre i orenga"
+      ],
+      preparation: [
+        "Sofregeix la ceba fins que estigui tova, afegeix l'albergínia i el carbassó tallats a daus.",
+        "Afegeix les llenties cuites i la salsa de tomàquet. Cuina 10 minuts.",
+        "Cuina les plaques de lasanya seguint les instruccions del paquet.",
+        "Munta la lasanya alternant capes de pasta, farcit i beixamel.",
+        "Acaba amb una capa de beixamel i pa ratllat.",
+        "Cuina al forn a 180°C durant 20–25 minuts fins que estigui daurada."
+      ],
+      tips: "Les llenties aporten proteïna vegetal i ferro. Pots triturar el farcit si calen textures més suaus.",
+      nutrition: "Proteïna vegetal completa, ferro, fibra i vitamines de les verdures."
+    },
+    {
+      id: "empanades_carn",
+      name: "Empanades calentes de carn",
+      nameCat: "Empanades calentes de carn",
+      nameEs: "Empanadas calientes de carne",
+      url: "https://oncoalicia.com/es/recetas/empanadas-calientes-de-carne/",
+      category: ["carn", "forn", "principals"],
+      sideEffects: ["poca_gana"],
+      texture: "normal",
+      description: "Empanades farcides de vedella i verdures. Fàcils de menjar i de portar, ideals com a menjar principal o entrepà.",
+      ingredients: [
+        "Massa d'empanada (fresca o congelada)",
+        "1 ou (per pintar)",
+        "200 g de vedella magra picada",
+        "1/2 pebrot vermell",
+        "1/2 ceba",
+        "1/2 carbassó",
+        "3 cullerades de tomàquet fregit",
+        "Sal i pebre"
+      ],
+      preparation: [
+        "Sofregeix la ceba i el pebrot fins que estiguin tous.",
+        "Afegeix el carbassó i cuina 5 minuts més.",
+        "Afegeix la carn picada i cuina fins que estigui feta.",
+        "Incorpora el tomàquet fregit, salpebra i deixa refredar.",
+        "Estira la massa, talla cercles i omple amb el farcit.",
+        "Tanca les empanades, pinta amb ou batut i cuina al forn a 180°C 20 minuts."
+      ],
+      tips: "Pots fer les empanades petites (mida de 2 o 3 mossegades) per facilitar el menjar en cas de poca gana.",
+      nutrition: "Proteïna de la carn de vedella, vitamines de les verdures."
+    },
+    {
+      id: "sopa_alvocat_blat_moro",
+      name: "Sopa freda d'alvocat i blat de moro",
+      nameCat: "Sopa freda d'alvocat i blat de moro",
+      nameEs: "Sopa fría de aguacate y maíz",
+      url: "https://oncoalicia.com/receptes/sopa-fria-de-aguacate-y-maiz-2/",
+      category: ["sopes", "fred", "refrescants", "verdures"],
+      sideEffects: ["nausees", "poca_gana", "boca_seca"],
+      texture: "líquida_semilíquida",
+      description: "Sopa freda cremosa d'alvocat amb blat de moro. Refrescant, nutritiva i molt fàcil de menjar.",
+      ingredients: [
+        "1 alvocat madur",
+        "100 g de blat de moro cuit (o en conserva)",
+        "300 ml de brou de verdures fred",
+        "Suc de mitja llimona",
+        "1 cullerada d'oli d'oliva verge extra",
+        "Sal i pebre al gust",
+        "Opcional: coriandre fresc"
+      ],
+      preparation: [
+        "Pelar l'alvocat i treure el pinyol.",
+        "Triturar l'alvocat amb el brou fred fins obtenir una crema suau.",
+        "Afegir el blat de moro, el suc de llimona, l'oli i salpebrar.",
+        "Triturar de nou fins que quedi homogeni.",
+        "Servir molt fred, decorat amb alguns grans de blat de moro."
+      ],
+      tips: "L'alvocat és molt ric en greixos saludables i calories, ideal per quan cal guanyar pes. Serviu sempre molt fred.",
+      nutrition: "Greixos monoinsaturats de l'alvocat, fibra, potassi i vitamina E."
+    },
+    {
+      id: "crema_mongetes_farigola",
+      name: "Crema de mongetes i farigola",
+      nameCat: "Crema de mongetes i farigola",
+      nameEs: "Crema de alubias y tomillo",
+      url: "https://oncoalicia.com/receptes/crema-de-alubias-y-tomillo/",
+      category: ["cremes", "llegums", "calent"],
+      sideEffects: ["poca_gana", "mucositis", "disfagia"],
+      texture: "triturada",
+      description: "Crema suau de mongetes blanques aromatitzada amb farigola. Rica en proteïna vegetal i molt digerible.",
+      ingredients: [
+        "200 g de mongetes blanques cuites",
+        "1 ceba petita",
+        "1 gra d'all",
+        "1 branqueta de farigola fresca (o 1/2 cullereta de seca)",
+        "Oli d'oliva verge extra",
+        "400 ml de brou de verdures",
+        "Sal i pebre"
+      ],
+      preparation: [
+        "Sofregeix la ceba i l'all amb oli fins que estiguin tous.",
+        "Afegeix les mongetes cuites i la farigola.",
+        "Cobreix amb el brou i cuina 15 minuts a foc lent.",
+        "Treu la branqueta de farigola i tritura fins obtenir una crema molt fina.",
+        "Salpebra i afegeix un raig d'oli d'oliva en cru.",
+        "Serveix calent."
+      ],
+      tips: "Per a disfàgia severa, passa la crema per un colador fi per assegurar una textura perfectament homogènia. Pots enriquir amb nata o formatge ratllat.",
+      nutrition: "Proteïna vegetal de les mongetes, fibra soluble, ferro i magnesi."
+    },
+    {
+      id: "sopa_miso",
+      name: "Sopa de miso amb fideus",
+      nameCat: "Sopa de miso amb fideus",
+      nameEs: "Sopa de miso con fideos",
+      url: "https://oncoalicia.com/receptes/sopa-de-miso-amb-fideus/",
+      category: ["sopes", "calent"],
+      sideEffects: ["poca_gana", "nausees"],
+      texture: "tova",
+      description: "Sopa japonesa de miso amb fideus i tofu. Reconfortant, lleugera i rica en probiotics del miso.",
+      ingredients: [
+        "1 litre d'aigua o brou dashi",
+        "2 cullerades de pasta de miso blanc",
+        "100 g de fideus soba (o fideus normals)",
+        "100 g de tofu ferm, tallat a daus",
+        "2 cebetes tendres laminades",
+        "1 full d'algues nori (opcional)"
+      ],
+      preparation: [
+        "Cuina els fideus a part seguint les instruccions. Escorre i reserva.",
+        "Escalfa l'aigua o brou sense que arribi a bullir.",
+        "Dissol la pasta de miso en una mica d'aigua freda primer.",
+        "Afegeix el miso dissolt al brou calent (no bullir, per preservar els probiotics).",
+        "Incorpora el tofu i les cebetes.",
+        "Serveix immediatament en bols amb els fideus."
+      ],
+      tips: "El miso conté probiotics beneficiosos per la flora intestinal. Usa miso blanc si hi ha sensibilitat gàstrica, ja que és més suau. Evita bullir la sopa de miso per conservar els beneficis.",
+      nutrition: "Probiotics del miso, proteïna del tofu, minerals de les algues."
+    },
+    {
+      id: "crema_coliflor",
+      name: "Crema de coliflor, porro i pastanaga",
+      nameCat: "Crema de coliflor, porro i pastanaga",
+      nameEs: "Crema de coliflor, puerro y zanahoria",
+      url: "https://oncoalicia.com/receptes/crema-de-coliflor-puerro-y-zanahoria/",
+      category: ["cremes", "verdures", "calent"],
+      sideEffects: ["mucositis", "disfagia", "poca_gana"],
+      texture: "triturada",
+      description: "Crema suau de coliflor, porro i pastanaga. Lleugerament dolça gràcies a la pastanaga, molt adequada per a mucositis.",
+      ingredients: [
+        "1/2 coliflor",
+        "1 porro",
+        "2 pastanagues",
+        "Oli d'oliva verge extra",
+        "600 ml de brou de verdures",
+        "Sal i pebre",
+        "Opcional: nata per cuinar"
+      ],
+      preparation: [
+        "Neteja i talla totes les verdures.",
+        "Sofregeix el porro amb oli uns minuts.",
+        "Afegeix la coliflor i les pastanagues.",
+        "Cobreix amb el brou i cuina 20 minuts fins que tot sigui tendre.",
+        "Tritura fins obtenir una crema molt fina.",
+        "Afegeix nata per suavitzar si es desitja. Rectifica de sal."
+      ],
+      tips: "La coliflor és suau i fàcil de triturar. Afegeix una mica de mantequilla o nata per incrementar les calories si cal. Serveix tèbia en cas de mucositis (evitar extrems de temperatura).",
+      nutrition: "Vitamina C i folats de la coliflor, betacarotens de la pastanaga."
+    },
+    {
+      id: "pa_llegums",
+      name: "Pa fàcil de llegums",
+      nameCat: "Pa fàcil de llegums",
+      nameEs: "Pan fácil de legumbres",
+      url: "https://oncoalicia.com/receptes/pa-facil-de-llegums/",
+      category: ["pa", "proteina", "vegetaria"],
+      sideEffects: ["poca_gana", "necessitat_proteina"],
+      texture: "tova",
+      description: "Pa ric en proteïnes fet amb farina de llegums. Ideal com a base de torrades, entrepans o acompanyament.",
+      ingredients: [
+        "200 g de farina de cigrons o llenties",
+        "2 ous",
+        "50 ml d'oli d'oliva verge extra",
+        "1/2 sobre de llevat en pols",
+        "1/2 cullereta de sal",
+        "Espècies al gust (cúrcuma, orenga)"
+      ],
+      preparation: [
+        "Barreja la farina de llegums amb el llevat i la sal.",
+        "Afegeix els ous batuts i l'oli d'oliva.",
+        "Remena fins obtenir una massa homogènia.",
+        "Posa en un motlle de pa untat amb oli.",
+        "Cuina al forn a 180°C durant 25–30 minuts.",
+        "Comprova que sigui cuit punxant amb una brotxeta."
+      ],
+      tips: "Aquest pa és molt ric en proteïnes i sense gluten si s'usa farina de cigrons certificada. Ideal per a qui necessita augmentar la ingesta proteica.",
+      nutrition: "Alta en proteïnes, ferro, i fibra de les llegums. Sense gluten."
+    },
+    {
+      id: "esparecs_tres_salses",
+      name: "Espàrrecs al vapor amb tres salses",
+      nameCat: "Espàrrecs al vapor amb tres salses",
+      nameEs: "Espárragos al vapor a las tres salsas",
+      url: "https://oncoalicia.com/receptes/esparragos-al-vapor-a-las-tres-salsas/",
+      category: ["verdures", "aperitius"],
+      sideEffects: ["poca_gana"],
+      texture: "normal",
+      description: "Espàrrecs verds al vapor servits amb tres dipins: maionesa, romesco i vinagreta. Presentació atractiva per estimular la gana.",
+      ingredients: [
+        "1 grapat d'espàrrecs verds frescos",
+        "Per la maionesa: ou, oli, sal, llimona",
+        "Per el romesco: tomàquet, nyores, avellanes, all, vinagre",
+        "Per la vinagreta: oli, vinagre, mostassa, sal"
+      ],
+      preparation: [
+        "Neteja els espàrrecs i talla els extrems durs.",
+        "Cuina al vapor durant 5–8 minuts fins que estiguin tendres però cruixents.",
+        "Prepara les tres salses per separat.",
+        "Serveix els espàrrecs calents o tebis amb les salses al costat."
+      ],
+      tips: "Tres sabors diferents per estimular la gana. Si hi ha problemes de masticació, cuina els espàrrecs uns minuts més.",
+      nutrition: "Àcid fòlic, vitamines K i E, fibra dels espàrrecs."
+    },
+    {
+      id: "bacalla_llauna",
+      name: "Bacallà a la llauna (masticació fàcil)",
+      nameCat: "Bacallà a la llauna (masticació fàcil)",
+      nameEs: "Bacalao a la llauna (fácil masticación)",
+      url: "https://oncoalicia.com/receptes/bacalao-a-la-llauna-facil-masticacion/",
+      category: ["peix", "principals", "masticacio_facil"],
+      sideEffects: ["masticacio_dificil", "mucositis"],
+      texture: "tova",
+      description: "Bacallà cuit al forn amb tomàquet i all. Tècnica que fa el peix molt tendre i fàcil de mastegar.",
+      ingredients: [
+        "150 g de bacallà dessalat",
+        "1 tomàquet madur",
+        "2 grans d'all",
+        "Oli d'oliva verge extra",
+        "Pebre dolç fumat",
+        "Pa ratllat (opcional)"
+      ],
+      preparation: [
+        "Preescalfa el forn a 200°C.",
+        "Col·loca el bacallà en una safata de forn.",
+        "Talla el tomàquet en rodanxes i col·loca a sobre.",
+        "Lamina l'all i reparteix per la safata.",
+        "Ruixa amb oli i afegeix el pebre dolç.",
+        "Cuina 15–20 minuts fins que el bacallà sigui tendre."
+      ],
+      tips: "Assegura't que el bacallà estigui ben dessalat (48h en remull canviant l'aigua). La cocció prolongada fa el peix molt tendre i fàcil de mastegar.",
+      nutrition: "Proteïnes d'alta qualitat del bacallà, vitamines del tomàquet i antioxidants de l'all."
+    },
+    {
+      id: "sopa_cogombre_poma",
+      name: "Sopa fresca de cogombre i poma",
+      nameCat: "Sopa fresca de cogombre i poma",
+      nameEs: "Sopa fresca de pepino y manzana",
+      url: "https://oncoalicia.com/receptes/sopa-fresca-de-co-gombre-i-poma/",
+      category: ["sopes", "fred", "verdures"],
+      sideEffects: ["nausees", "poca_gana", "boca_seca"],
+      texture: "líquida_semilíquida",
+      description: "Sopa freda suau de cogombre i poma. Molt refrescant i calmant, ideal per a dies de nàusees.",
+      ingredients: [
+        "1 cogombre gran",
+        "1 poma verda",
+        "200 ml de iogurt natural",
+        "Suc d'1/2 llimona",
+        "1 cullerada d'oli d'oliva",
+        "Sal, menta fresca"
+      ],
+      preparation: [
+        "Pela i talla el cogombre i la poma.",
+        "Tritura amb el iogurt, el suc de llimona i l'oli.",
+        "Salpebra i afegeix la menta.",
+        "Refrigera almenys 1 hora.",
+        "Serveix ben fred."
+      ],
+      tips: "La menta fresca pot ajudar amb les nàusees. Servir molt fred és molt reconfortant. Si hi ha mucositis, omete el suc de llimona.",
+      nutrition: "Probiotics del iogurt, hidratació, vitamines de la poma i el cogombre."
+    },
+    {
+      id: "sopa_farigola",
+      name: "Sopa de farigola",
+      nameCat: "Sopa de farigola",
+      nameEs: "Sopa de tomillo",
+      url: "https://oncoalicia.com/receptes/sopa-de-tomillo/",
+      category: ["sopes", "calent", "herbes"],
+      sideEffects: ["nausees", "poca_gana"],
+      texture: "líquida",
+      description: "Sopa aromatitzada amb farigola. Suau, reconfortant i digestiva. La farigola té propietats antibacterianes i digestives.",
+      ingredients: [
+        "1 litre de brou de verdures o pollastre",
+        "1 branqueta generosa de farigola fresca",
+        "1 ceba petita",
+        "1 gra d'all",
+        "Oli d'oliva verge extra",
+        "Sal al gust",
+        "Opcional: pa torrat, tomàquet"
+      ],
+      preparation: [
+        "Sofregeix la ceba i l'all amb oli.",
+        "Afegeix el brou i la farigola.",
+        "Cuina a foc lent 20 minuts.",
+        "Colar per treure la farigola.",
+        "Servir calent."
+      ],
+      tips: "Una sopa molt senzilla, lleugera i reconfortant. La farigola pot ajudar amb la digestió i té propietats antisèptiques.",
+      nutrition: "Minerals del brou, propietats digestives de la farigola."
+    },
+    {
+      id: "broquetes_pollastre",
+      name: "Broquetes de pollastre amb poma (textura modificada)",
+      nameCat: "Broquetes de pollastre amb poma (textura modificada)",
+      nameEs: "Pinchos de pollo y manzana (textura modificada)",
+      url: "https://oncoalicia.com/receptes/pinchos-de-pollo-y-manzana-triturado/",
+      category: ["carn", "textura_modificada"],
+      sideEffects: ["disfagia", "mucositis", "masticacio_dificil"],
+      texture: "triturada",
+      description: "Versió triturada de les broquetes de pollastre amb poma. Mateixa nutrició, textura adaptada per a disfàgia i mucositis.",
+      ingredients: [
+        "150 g de pit de pollastre",
+        "1 poma",
+        "Oli d'oliva verge extra",
+        "Sal i pebre",
+        "Suc de poma o brou per ajustar la textura"
+      ],
+      preparation: [
+        "Cuina el pollastre a la planxa o al vapor.",
+        "Cuina la poma fins que sigui tova (al vapor o al forn).",
+        "Tritura el pollastre i la poma junts fins obtenir un puré homogeni.",
+        "Afegeix brou o suc de poma per ajustar la consistència.",
+        "Serveix a temperatura tèbia."
+      ],
+      tips: "La textura ha de ser perfectament homogènia per a disfàgia. Pots motllar el puré per fer-lo visualment atractiu.",
+      nutrition: "Proteïna magra de pollastre, vitamines de la poma."
+    },
+    {
+      id: "triturat_fruita",
+      name: "Triturat de fruita natural",
+      nameCat: "Triturat de fruita natural",
+      nameEs: "Triturado de fruta natural",
+      url: "https://oncoalicia.com/receptes/triturado-de-fruta-natural/",
+      category: ["postres", "fruita", "textura_modificada"],
+      sideEffects: ["disfagia", "mucositis", "poca_gana"],
+      texture: "triturada",
+      description: "Puré de fruita natural adaptada a textura modificada. Ideal per rebre fruita de forma fàcil d'empassar.",
+      ingredients: [
+        "Fruita madura (plàtan, pera, préssec, maduixes...)",
+        "Opcional: iogurt natural, mel, suc de llimona"
+      ],
+      preparation: [
+        "Pela i talla la fruita en trossos.",
+        "Tritura fins obtenir un puré completament homogeni.",
+        "Afegeix iogurt o mel per ajustar sabor i textura.",
+        "Serveix fred o a temperatura ambient."
+      ],
+      tips: "El plàtan i la pera cuita donen textura cremosa sense necessitat d'afegir llet. Evita fruites fibroses com el pinya natural per a disfàgia severa.",
+      nutrition: "Vitamines, minerals i fibra natural de la fruita."
+    }
+  ],
+
+  sideEffectsInfo: {
+    nausees: {
+      name: "Nàusees i vòmits",
+      advice: [
+        "Menja petites quantitats moltes vegades al dia",
+        "Prefereix aliments freds o a temperatura ambient",
+        "Evita els aliments molt grassos, fregits o d'olor forta",
+        "El gingebre fresc, la camamilla o la menta poden ajudar",
+        "Beu líquids freds a poc a poc, entre àpats",
+        "Evita olors fortes mentre cuines"
+      ]
+    },
+    mucositis: {
+      name: "Mucositis (llagues a la boca)",
+      advice: [
+        "Menja aliments tous, freds o a temperatura ambient",
+        "Evita els aliments àcids (llimona, taronja, vinagre)",
+        "Evita els aliments salats o molt condimentats",
+        "Evita l'alcohol i el tabac",
+        "Beu abundants líquids per mantenir la boca humida",
+        "Prefereix cremes, purés i sopes"
+      ]
+    },
+    disfagia: {
+      name: "Disfàgia (dificultat per empassar)",
+      advice: [
+        "Adapta la textura dels aliments al grau de dificultat",
+        "Prefereix textures triturades o de puré homogeni",
+        "Evita els aliments amb dobles textures (sòlid + líquid)",
+        "Afegeix espessidors als líquids si cal",
+        "Menja assegut/da en posició vertical",
+        "Menja lentament i en petites quantitats"
+      ]
+    },
+    poca_gana: {
+      name: "Pèrdua de gana",
+      advice: [
+        "Menja petites quantitats sovint (5–6 vegades al dia)",
+        "Aprofita els moments de millor gana (normalment al matí)",
+        "Enriqueix les preparacions amb oli d'oliva, mantequilla o nata",
+        "Cuida la presentació dels plats per fer-los atractius",
+        "Menja en companyia si és possible",
+        "Prefereix aliments que t'agradin i et resultin familiars"
+      ]
+    },
+    boca_seca: {
+      name: "Boca seca (xerostomia)",
+      advice: [
+        "Beu líquids a intervals regulars al llarg del dia",
+        "Menja aliments amb força salsa o brou",
+        "Els aliments geladets i freds poden ajudar",
+        "Prova caramels sense sucre o goma de mastegar sense sucre",
+        "Evita l'alcohol i la cafeïna",
+        "Mantén la boca humida amb glopets freqüents d'aigua"
+      ]
+    },
+    diarrea: {
+      name: "Diarrea",
+      advice: [
+        "Comença amb una dieta astringent: arròs bullit, pastanaga, plàtan",
+        "Evita la fibra insoluble (verdures crues, fruita amb pell)",
+        "Beu molt per reposar els líquids perduts",
+        "Evita els lactis fins que millori (excepte iogurt)",
+        "Menja petites quantitats cada poc temps",
+        "Prefereix aliments bullits o al vapor, no fregits"
+      ]
+    },
+    estrenyiment: {
+      name: "Estrenyiment",
+      advice: [
+        "Augmenta la ingesta de fibra gradualment",
+        "Beu abundants líquids, especialment water",
+        "Afegeix prunes, kiwi i altres fruites amb efecte laxant",
+        "Fes activitat física moderada si és possible",
+        "Menja a hores regulars",
+        "Afegeix civada i llegums als menús"
+      ]
+    },
+    masticacio_dificil: {
+      name: "Dificultat per mastegar",
+      advice: [
+        "Cuina les verdures fins que siguin molt tendres",
+        "Prefereix peixos i carns toves (pollastre, lluç, bacallà ben cuit)",
+        "Talla els aliments a trossets molt petits",
+        "Evita les carns dures, la pell del pollastre, fruits secs sencers",
+        "Afegeix salsas i brous per facilitar la masticació"
+      ]
+    }
+  }
+};
+
+// ─────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────
+function norm(str) {
+  return str.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ");
+}
+
+function contains(str, keywords) {
+  const n = norm(str);
+  return keywords.some(k => n.includes(norm(k)));
+}
+
+function escapeHTML(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatList(items) {
+  return '<ul>' + items.map(i => `<li>${escapeHTML(i)}</li>`).join('') + '</ul>';
+}
+
+// ─────────────────────────────────────────────
+// INTENT DETECTION
+// ─────────────────────────────────────────────
+function detectIntent(msg) {
+  const m = norm(msg);
+
+  // About the project
+  if (contains(m, ['que es oncoalicia','com funciona','sobre el projecte','que es','que son','qui son','proyecto','que hace','informacio del projecte'])) {
+    return { type: 'ABOUT' };
+  }
+
+  // List all recipes
+  if (contains(m, ['totes les receptes','todas las recetas','llista de receptes','quines receptes','que receptes','quantes receptes','all recipes','llista','totes','todas'])) {
+    return { type: 'LIST_ALL' };
+  }
+
+  // Side effects filter
+  const sideEffectMap = [
+    { keys: ['nausea','nausees','nauseas','vomit','vomits','vomito','nausees i vomits','mareig'], id: 'nausees' },
+    { keys: ['mucositis','llaga','llagues a la boca','boca ferida','ulcera bucal','ferida boca','llagas'], id: 'mucositis' },
+    { keys: ['disfagia','disfàgia','empassar','deglutir','dificultat empassar','dificultat per empassar'], id: 'disfagia' },
+    { keys: ['poca gana','perdua de gana','sense gana','perdida de apetito','anorexia','no tinc gana','no menjo','no tens gana'], id: 'poca_gana' },
+    { keys: ['boca seca','xerostomia','boqueta seca','sequedat de boca','bouche seche'], id: 'boca_seca' },
+    { keys: ['diarrea','diarrees','deposicio'], id: 'diarrea' },
+    { keys: ['estrenyiment','estreñimiento','constipacio'], id: 'estrenyiment' },
+    { keys: ['masticacio dificil','dificultat per mastegar','mastegar','mastegacio','dificultat mastegar','costar mastegar'], id: 'masticacio_dificil' },
+  ];
+
+  for (const se of sideEffectMap) {
+    if (contains(m, se.keys)) {
+      return { type: 'SIDE_EFFECT', id: se.id };
+    }
+  }
+
+  // Texture filter
+  if (contains(m, ['textura modificada','textura tova','triturada','triturar','triturat','puré','purés','purée','homogenia','semiliquida','semilíquida'])) {
+    return { type: 'TEXTURE', texture: 'triturada' };
+  }
+  if (contains(m, ['freds','fredes','fred','fria','fresca','refrescant','refrescants','geladets'])) {
+    return { type: 'CATEGORY', category: 'fred' };
+  }
+  if (contains(m, ['sopa','sopes'])) {
+    return { type: 'CATEGORY', category: 'sopes' };
+  }
+  if (contains(m, ['crema','cremes'])) {
+    return { type: 'CATEGORY', category: 'cremes' };
+  }
+  if (contains(m, ['postres','postre','dolc','dolços','dolces'])) {
+    return { type: 'CATEGORY', category: 'postres' };
+  }
+  if (contains(m, ['peix','pescado'])) {
+    return { type: 'CATEGORY', category: 'peix' };
+  }
+  if (contains(m, ['carn','vedella','pollastre','conill'])) {
+    return { type: 'CATEGORY', category: 'carn' };
+  }
+  if (contains(m, ['vegetaria','vegetariana','sense carn','vegetal','llegums','llegum'])) {
+    return { type: 'CATEGORY', category: 'vegetaria' };
+  }
+  if (contains(m, ['proteina','proteïna','proteines'])) {
+    return { type: 'CATEGORY', category: 'proteina' };
+  }
+
+  // Recipe detail lookup
+  const recipeKeywords = [
+    { keys: ['tabule','tabule','tàbule'], id: 'tabule' },
+    { keys: ['crema de patata','crema patata','potato cream'], id: 'crema_patata' },
+    { keys: ['crispetes','palomitas','popcorn','crispets'], id: 'crispetes' },
+    { keys: ['granissat','granizado','granissat de melo','melo','melon'], id: 'granissat_melo' },
+    { keys: ['papillota','papillote','peix blanc','pescado blanco','xampinyons','champiñones','papil·lot'], id: 'papillota_peix' },
+    { keys: ['conill','conejo','pinya','piña'], id: 'conill_pinya' },
+    { keys: ['puding','púding','pudin','verdura escalivada','verdura asada'], id: 'puding_verdura' },
+    { keys: ['mousse de codonyat','mousse de membrillo','codonyat','membrillo'], id: 'mousse_codonyat' },
+    { keys: ['polo d\'albercoc','polo d albercoc','polo albaricoque','albercoc','albaricoque','camamilla'], id: 'polo_albercoc' },
+    { keys: ['lasanya vegetal','lasagna vegetal','lasaña vegetal','lasanya'], id: 'lasanya_vegetal' },
+    { keys: ['empanades','empanadas','empanada'], id: 'empanades_carn' },
+    { keys: ['sopa d alvocat','sopa fria de alvocat','alvocat blat','aguacate maiz'], id: 'sopa_alvocat_blat_moro' },
+    { keys: ['crema de mongetes','mongetes farigola','alubias tomillo'], id: 'crema_mongetes_farigola' },
+    { keys: ['sopa de miso','miso amb fideus','miso fideo'], id: 'sopa_miso' },
+    { keys: ['crema de coliflor','coliflor porro','coliflor pastanaga','coliflor puerro'], id: 'crema_coliflor' },
+    { keys: ['pa de llegums','pa facil','pa llegum','pan legumbres'], id: 'pa_llegums' },
+    { keys: ['esparecs','esparecs al vapor','esparragos'], id: 'esparecs_tres_salses' },
+    { keys: ['bacalla','bacalao','bacalla a la llauna'], id: 'bacalla_llauna' },
+    { keys: ['sopa de cogombre','cogombre i poma','pepino manzana','sopa cogombre'], id: 'sopa_cogombre_poma' },
+    { keys: ['sopa de farigola','farigola','sopa tomillo'], id: 'sopa_farigola' },
+    { keys: ['broquetes','broquetes de pollastre','pinchos pollo','broquetes pollastre'], id: 'broquetes_pollastre' },
+    { keys: ['triturat de fruita','triturado de fruta','fruta triturada','fruita triturada'], id: 'triturat_fruita' },
+  ];
+
+  for (const rk of recipeKeywords) {
+    if (contains(m, rk.keys)) {
+      // Determine what they want about the recipe
+      const wantIngredients = contains(m, ['ingredients','ingredientes','necessito','necesito','que porta','que lleva','que te','que té']);
+      const wantPrep = contains(m, ['preparar','preparacio','cuinar','cuina','fer','hacer','recepta','receta','como se hace','com es fa','com es prepara','passos','pasos','instruccions']);
+      const wantAll = contains(m, ['tot','todo','completa','complete','sencera','detall','detail']);
+      return {
+        type: 'RECIPE_DETAIL',
+        id: rk.id,
+        focus: wantIngredients ? 'ingredients' : wantPrep ? 'preparation' : 'all'
+      };
+    }
+  }
+
+  // Greeting
+  if (contains(m, ['hola','bon dia','bona tarda','bona nit','hello','hi','salut','buenas','buenos'])) {
+    return { type: 'GREET' };
+  }
+
+  // Thanks
+  if (contains(m, ['gracies','gràcies','merci','thanks','thank you','gracias','molt be','molt bé','perfecte','genial'])) {
+    return { type: 'THANKS' };
+  }
+
+  // Help / general
+  if (contains(m, ['ajuda','ajut','help','ayuda','que pots fer','que puc preguntar','que puc fer','opcions'])) {
+    return { type: 'HELP' };
+  }
+
+  return { type: 'UNKNOWN' };
+}
+
+// ─────────────────────────────────────────────
+// RESPONSE GENERATION
+// ─────────────────────────────────────────────
+function generateResponse(intent, userMsg) {
+  switch (intent.type) {
+
+    case 'GREET':
+      return {
+        text: `Hola! Benvingut/da a l'agent de receptes d'<strong>OncoAlícia</strong> 🍊<br><br>
+Soc aquí per ajudar-te a trobar receptes adaptades al tractament del càncer. Pots preguntar-me sobre:<br>
+<ul>
+  <li>📋 Llista de totes les receptes</li>
+  <li>🍽 Com preparar una recepta concreta</li>
+  <li>🤢 Receptes per a un efecte secundari (nàusees, mucositis, disfàgia...)</li>
+  <li>🥣 Receptes de textura modificada o triturada</li>
+  <li>❄️ Receptes fredes o refrescants</li>
+</ul>
+En quin puc ajudar-te avui?`,
+        quickReplies: ['Quines receptes hi ha?', 'Tinc nàusees', 'Textura triturada', 'Com funciona OncoAlícia?']
+      };
+
+    case 'ABOUT':
+      return {
+        text: `<strong>Sobre OncoAlícia 🍊</strong><br><br>
+OncoAlícia és un projecte social i científic impulsat per la <strong>Fundació Catalunya La Pedrera</strong> i desenvolupat per la <strong>Fundació Alícia</strong>, amb la col·laboració d'entitats de referència en oncologia.<br><br>
+<strong>Objectiu:</strong> Ajudar les persones en tractament del càncer a menjar de la forma més nutritiva, segura i agradable possible.<br><br>
+<strong>Com funcionen les receptes?</strong><br>
+Les receptes no són fórmules tancades. L'objectiu és donar idees perquè cada persona pugui preparar versions personalitzades adaptades a:<br>
+<ul>
+  <li>Les seves preferències</li>
+  <li>Els productes de temporada</li>
+  <li>Els aliments disponibles a casa</li>
+  <li>Els símptomes que hagin aparegut</li>
+</ul>
+La majoria es descriuen per a <strong>1 persona</strong>. El web inclou receptes tant en català com en castellà.<br><br>
+🌐 <a href="https://oncoalicia.com/receptes/" target="_blank">oncoalicia.com/receptes/</a>`,
+        quickReplies: ['Quines receptes hi ha?', 'Receptes per nàusees', 'Receptes de textura tova']
+      };
+
+    case 'LIST_ALL': {
+      const cats = {
+        'Sopes i cremes 🍲': KB.recipes.filter(r => r.category.includes('sopes') || r.category.includes('cremes')),
+        'Plats principals 🍽': KB.recipes.filter(r => r.category.includes('principals')),
+        'Aperitius i snacks 🫙': KB.recipes.filter(r => r.category.includes('aperitius') || r.category.includes('snacks') || r.category.includes('pa')),
+        'Postres i refrescants ❄️': KB.recipes.filter(r => r.category.includes('postres') || r.category.includes('fred') || r.category.includes('geladets')),
+        'Verdures 🥦': KB.recipes.filter(r => r.category.includes('verdures') && !r.category.includes('principals') && !r.category.includes('postres')),
+      };
+      let html = `Aquí tens les receptes disponibles a <strong>OncoAlícia</strong> (<strong>${KB.recipes.length} receptes</strong>):<br><br>`;
+      for (const [cat, recipes] of Object.entries(cats)) {
+        if (!recipes.length) continue;
+        html += `<strong>${cat}</strong><ul>`;
+        html += recipes.map(r => `<li><strong>${escapeHTML(r.name)}</strong> — ${escapeHTML(r.description.split('.')[0])}</li>`).join('');
+        html += '</ul>';
+      }
+      html += `<br>Pots preguntar-me sobre qualsevol recepta per veure els ingredients i la preparació.`;
+      return {
+        text: html,
+        quickReplies: ['Receptes per nàusees', 'Receptes triturades', 'Com es fa el tabulé?', 'Com es fa la crema de patata?']
+      };
+    }
+
+    case 'SIDE_EFFECT': {
+      const se = KB.sideEffectsInfo[intent.id];
+      const recs = KB.recipes.filter(r => r.sideEffects.includes(intent.id));
+      let html = `<strong>${se.name} — Consells i receptes 🌿</strong><br><br>`;
+      html += `<span class="section-title">💡 Consells generals:</span>`;
+      html += formatList(se.advice);
+      if (recs.length) {
+        html += `<span class="section-title">🍽 Receptes recomanades (${recs.length}):</span><ul>`;
+        html += recs.map(r => `<li><strong>${escapeHTML(r.name)}</strong> — ${escapeHTML(r.description.split('.')[0])}.<br><small style="color:#888">Textura: ${escapeHTML(r.texture)}</small></li>`).join('');
+        html += '</ul>';
+      }
+      const quickReplies = recs.slice(0,3).map(r => `Com es fa ${r.name}?`);
+      quickReplies.push('Altres efectes secundaris');
+      return { text: html, quickReplies };
+    }
+
+    case 'TEXTURE': {
+      const recs = KB.recipes.filter(r => r.texture === 'triturada' || r.texture === 'mousse' || r.texture === 'líquida_semilíquida' || r.texture === 'geladets');
+      let html = `<strong>Receptes de textura modificada o suau 🥣</strong><br><br>
+Receptes especialment adaptades per a persones amb mucositis, disfàgia o dificultat per mastegar:<br><ul>`;
+      html += recs.map(r => `<li><strong>${escapeHTML(r.name)}</strong> [${escapeHTML(r.texture)}]<br><small>${escapeHTML(r.description.split('.')[0])}</small></li>`).join('');
+      html += '</ul>';
+      html += '<br>Pregunta per qualsevol d\'elles per veure la recepta completa.';
+      return {
+        text: html,
+        quickReplies: recs.slice(0,4).map(r => `Com es fa ${r.name}?`)
+      };
+    }
+
+    case 'CATEGORY': {
+      const recs = KB.recipes.filter(r => r.category.includes(intent.category));
+      if (!recs.length) {
+        return { text: `No he trobat receptes per a la categoria "${escapeHTML(intent.category)}". Prova amb una altra cerca.`, quickReplies: ['Quines receptes hi ha?'] };
+      }
+      const catNames = {
+        'sopes': 'Sopes', 'cremes': 'Cremes', 'fred': 'Fredes/Refrescants',
+        'postres': 'Postres', 'peix': 'Peix', 'carn': 'Carn', 'vegetaria': 'Vegetarianes',
+        'proteina': 'Altes en proteïna'
+      };
+      let html = `<strong>Receptes: ${catNames[intent.category] || intent.category} 🍽</strong><br><ul>`;
+      html += recs.map(r => `<li><strong>${escapeHTML(r.name)}</strong><br><small>${escapeHTML(r.description.split('.')[0])}</small></li>`).join('');
+      html += '</ul>';
+      return {
+        text: html,
+        quickReplies: recs.slice(0,3).map(r => `Com es fa ${r.name}?`)
+      };
+    }
+
+    case 'RECIPE_DETAIL': {
+      const recipe = KB.recipes.find(r => r.id === intent.id);
+      if (!recipe) return { text: 'No he trobat aquesta recepta. Prova amb un altre nom.', quickReplies: ['Quines receptes hi ha?'] };
+
+      const focus = intent.focus || 'all';
+      let html = `<strong>🍽 ${escapeHTML(recipe.name)}</strong>`;
+      if (recipe.nameEs && recipe.nameEs !== recipe.nameCat) {
+        html += ` <small style="color:#888">(${escapeHTML(recipe.nameEs)})</small>`;
+      }
+      html += `<br><br><em>${escapeHTML(recipe.description)}</em><br>`;
+
+      // Tags
+      const seNames = { nausees: 'Nàusees', mucositis: 'Mucositis', disfagia: 'Disfàgia', poca_gana: 'Poca gana', boca_seca: 'Boca seca', masticacio_dificil: 'Masticació fàcil', diarrea: 'Diarrea', necessitat_proteina: 'Alta proteïna' };
+      if (recipe.sideEffects.length) {
+        html += '<br>Útil per: ';
+        html += recipe.sideEffects.map(se => `<span class="chip">${seNames[se] || se}</span>`).join('');
+        html += '<br>';
+      }
+
+      if (focus === 'all' || focus === 'ingredients') {
+        html += `<span class="section-title">🛒 Ingredients (per 1 persona):</span>`;
+        html += formatList(recipe.ingredients);
+      }
+
+      if (focus === 'all' || focus === 'preparation') {
+        html += `<span class="section-title">👨‍🍳 Preparació:</span>`;
+        html += '<ol style="margin-left:16px">' + recipe.preparation.map(p => `<li style="margin-bottom:4px">${escapeHTML(p)}</li>`).join('') + '</ol>';
+      }
+
+      if (recipe.tips && (focus === 'all')) {
+        html += `<span class="section-title">💡 Consells:</span>${escapeHTML(recipe.tips)}<br>`;
+      }
+
+      if (recipe.nutrition && focus === 'all') {
+        html += `<span class="section-title">🌿 Nutrició:</span>${escapeHTML(recipe.nutrition)}<br>`;
+      }
+
+      html += `<div class="source-link">Font: <a href="${recipe.url}" target="_blank">${recipe.url}</a></div>`;
+
+      const quickReplies = ['Quines receptes similars hi ha?'];
+      if (focus !== 'ingredients') quickReplies.unshift(`Ingredients del ${recipe.name}`);
+      if (focus !== 'preparation') quickReplies.unshift(`Com es prepara el ${recipe.name}?`);
+      return { text: html, quickReplies: quickReplies.slice(0,4) };
+    }
+
+    case 'THANKS':
+      return {
+        text: `De res! 😊 Qualsevol altra pregunta sobre receptes o nutrició durant el tractament, estic aquí per ajudar-te. <strong>Ànim!</strong> 💪🍊`,
+        quickReplies: ['Quines receptes hi ha?', 'Receptes per nàusees', 'Receptes triturades']
+      };
+
+    case 'HELP':
+      return {
+        text: `Puc ajudar-te amb tot el relacionat amb les receptes d'<strong>OncoAlícia</strong>:<br><br>
+<ul>
+  <li>📋 <strong>Llista receptes:</strong> "Quines receptes hi ha?"</li>
+  <li>🔎 <strong>Recepta específica:</strong> "Com es fa el tabulé?" / "Ingredients de la crema de patata"</li>
+  <li>🤢 <strong>Per efecte secundari:</strong> "Tinc nàusees, quines receptes em van bé?"</li>
+  <li>🥣 <strong>Per textura:</strong> "Receptes de textura triturada" / "Receptes suaus"</li>
+  <li>❄️ <strong>Per temperatura:</strong> "Receptes fredes o refrescants"</li>
+  <li>🐟 <strong>Per tipus:</strong> "Receptes de peix" / "Receptes vegetarianes"</li>
+  <li>ℹ️ <strong>Sobre el projecte:</strong> "Que és OncoAlícia?"</li>
+</ul>
+Escriu en català o castellà, com prefereixis 🙂`,
+        quickReplies: ['Quines receptes hi ha?', 'Tinc mucositis', 'Receptes de peix', 'Textura triturada']
+      };
+
+    default: {
+      // Try to give a helpful fallback
+      const allNames = KB.recipes.map(r => r.name).join(', ');
+      return {
+        text: `No he entès del tot la teva pregunta 🤔 Però puc ajudar-te amb les receptes d'<strong>OncoAlícia</strong>.<br><br>
+Prova a preguntar sobre:<br>
+<ul>
+  <li>"Quines receptes hi ha?"</li>
+  <li>"Com es fa [nom de la recepta]?"</li>
+  <li>"Tinc [efecte secundari], quines receptes em van bé?"</li>
+  <li>"Necessito receptes de textura triturada"</li>
+</ul>
+Les receptes disponibles inclouen: ${escapeHTML(KB.recipes.map(r=>r.name).slice(0,8).join(', '))} i moltes més.`,
+        quickReplies: ['Quines receptes hi ha?', 'Receptes per nàusees', 'Ajuda', 'Que és OncoAlícia?']
+      };
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+// UI LOGIC
+// ─────────────────────────────────────────────
+const chatMessages = document.getElementById('chatMessages');
+const typingIndicator = document.getElementById('typingIndicator');
+const userInput = document.getElementById('userInput');
+
+function scrollToBottom() {
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addMessage(text, type, quickReplies) {
+  const msg = document.createElement('div');
+  msg.className = `message ${type}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `avatar ${type}`;
+  avatar.textContent = type === 'bot' ? '🍊' : '👤';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = text;
+
+  if (quickReplies && quickReplies.length && type === 'bot') {
+    const qrDiv = document.createElement('div');
+    qrDiv.className = 'quick-replies';
+    quickReplies.forEach(qr => {
+      const btn = document.createElement('button');
+      btn.className = 'qr-btn';
+      btn.textContent = qr;
+      btn.onclick = () => sendQuick(qr);
+      qrDiv.appendChild(btn);
+    });
+    bubble.appendChild(qrDiv);
+  }
+
+  msg.appendChild(avatar);
+  msg.appendChild(bubble);
+  chatMessages.appendChild(msg);
+  scrollToBottom();
+}
+
+function showTyping() {
+  typingIndicator.classList.add('show');
+  chatMessages.appendChild(typingIndicator);
+  scrollToBottom();
+}
+
+function hideTyping() {
+  typingIndicator.classList.remove('show');
+}
+
+function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text) return;
+
+  addMessage(escapeHTML(text), 'user');
+  userInput.value = '';
+  userInput.style.height = 'auto';
+
+  showTyping();
+
+  setTimeout(() => {
+    hideTyping();
+    const intent = detectIntent(text);
+    const response = generateResponse(intent, text);
+    addMessage(response.text, 'bot', response.quickReplies);
+  }, 600 + Math.random() * 400);
+}
+
+function sendQuick(text) {
+  userInput.value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+</script>
+
+</body>
+</html>
